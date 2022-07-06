@@ -23,6 +23,7 @@ function mouseZoom (target: HTMLElement, callback: ZoomCallback) {
 
     target.addEventListener('mousemove', onMouseMove)
     target.addEventListener('mouseup', onMouseUp)
+    target.addEventListener('mouseleave', onMouseUp)
 
     emit('start', e)
   }
@@ -38,6 +39,7 @@ function mouseZoom (target: HTMLElement, callback: ZoomCallback) {
 
     target.removeEventListener('mousemove', onMouseMove)
     target.removeEventListener('mouseup', onMouseUp)
+    target.removeEventListener('mouseleave', onMouseUp)
 
     emit('end', e)
   }
