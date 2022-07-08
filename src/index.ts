@@ -2,7 +2,7 @@
  * @Author: 阿佑[ayooooo@petalmail.com] 
  * @Date: 2022-07-06 15:48:38 
  * @Last Modified by: 阿佑
- * @Last Modified time: 2022-07-06 18:41:17
+ * @Last Modified time: 2022-07-08 18:56:12
  */
 import { ZoomEvent } from './zoom'
 import mouseZoom from './mouseZoom'
@@ -12,8 +12,11 @@ function isTouchable () {
 }
 
 class NaNie {
+  target: HTMLElement
+
   constructor (target: HTMLElement | null) {
     if (target instanceof Element) {
+      this.target = target
 
       if (isTouchable()) {
         mouseZoom(target, this.zoom.bind(this))
@@ -21,6 +24,8 @@ class NaNie {
         mouseZoom(target, this.zoom.bind(this))
       }
 
+    } else {
+      throw new Error('Invalid zoom target')
     }
   }
 
@@ -29,7 +34,8 @@ class NaNie {
   scale () {}
 
   zoom (e: ZoomEvent) {
-    console.log(e)
+    const transform = e.transform
+    this.target.style.transform = `translate(${transform.x}px, ${transform.y}px)`
   }
 
   apply () {}
