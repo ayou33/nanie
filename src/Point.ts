@@ -7,8 +7,8 @@
 export type PointCoords = [x: number, y: number]
 
 class Point {
-  private x: number
-  private y: number
+  x: number
+  y: number
 
   constructor (x: number, y: number) {
     this.x = x

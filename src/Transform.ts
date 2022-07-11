@@ -4,7 +4,7 @@
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-06 15:02:37
  */
-export type Point = [x: number, y: number]
+export type PointCoords = [x: number, y: number]
 
 class Transform {
   k = 1
@@ -54,7 +54,7 @@ class Transform {
    * 对指定点应用变换
    * @param p 
    */
-  apply ([x, y]: Point): Point {
+  apply ([x, y]: PointCoords): PointCoords {
     return [this.x + this.k * x, this.y + this.k * y]
   }
 
@@ -78,7 +78,7 @@ class Transform {
    * 对指定点撤销变换
    * @param location 
    */
-  invert ([x, y]: Point): Point {
+  invert ([x, y]: PointCoords): PointCoords {
     return [(x - this.x) / this.k, (y - this.y) / this.k]
   }
 

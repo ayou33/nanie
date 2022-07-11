@@ -4,7 +4,7 @@
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-08 18:58:05
  */
-import { ZoomCallback, noDefaultAndPopogation, ZoomType } from "./zoom"
+import { ZoomCallback, noDefaultAndPopogation, ZoomType, translate } from "./zoom"
 import Transform from './Transform'
 import Point from './Point'
 
@@ -22,14 +22,14 @@ function mouseZoom (target: HTMLElement, callback: ZoomCallback) {
   function onMouseDown (e: MouseEvent) {
     e.stopImmediatePropagation()
 
-    const dragFrom = new Point(-e.clientX, -e.clientY)
+    console.log(e.clientX)
+
+    const start = Point.from(transform.invert([e.clientX, e.clientY]))
 
     function onMouseMove (e: MouseEvent) {
       noDefaultAndPopogation(e)
 
-      console.log(e.clientX, e.clientX + dragFrom.value()[0])
-
-      transform = transform.translate(...dragFrom.translate([e.clientX, e.clientY]).value())
+      transform = translate(transform, new Point(e.clientX, e.clientY), start)
 
       emit('zoom', e)
     }
