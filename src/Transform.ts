@@ -1,10 +1,10 @@
 /*
- * @Author: 阿佑[ayooooo@petalmail.com] 
- * @Date: 2022-07-06 13:38:45 
+ * @Author: 阿佑[ayooooo@petalmail.com]
+ * @Date: 2022-07-06 13:38:45
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-06 15:02:37
  */
-export type PointCoords = [x: number, y: number]
+import { PointCoords } from './Point'
 
 class Transform {
   k = 1
@@ -19,7 +19,7 @@ class Transform {
 
   /**
    * 缩放
-   * @param k 
+   * @param k
    */
   scale (k: number) {
     return k === 1 ? this : new Transform(k, this.x, this.y)
@@ -27,8 +27,8 @@ class Transform {
 
   /**
    * 偏移
-   * @param x 
-   * @param y 
+   * @param x
+   * @param y
    */
   translate (x: number, y: number) {
     return x === 0 && y === 0 ? this : new Transform(this.k, this.x + this.k * x, this.y + this.k * y)
@@ -36,7 +36,7 @@ class Transform {
 
   /**
    * x轴偏移
-   * @param x 
+   * @param x
    */
   translateX (x: number) {
     return x === 0 ? this : new Transform(this.k, this.x + this.k * x, this.y)
@@ -44,7 +44,7 @@ class Transform {
 
   /**
    * y轴偏移
-   * @param y 
+   * @param y
    */
   translateY (y: number) {
     return y === 0 ? this : new Transform(this.k, this.x, this.y + this.k * y)
@@ -52,7 +52,7 @@ class Transform {
 
   /**
    * 对指定点应用变换
-   * @param p 
+   * @param p
    */
   apply ([x, y]: PointCoords): PointCoords {
     return [this.x + this.k * x, this.y + this.k * y]
@@ -60,7 +60,7 @@ class Transform {
 
   /**
    * 对指定值做x轴变换
-   * @param x 
+   * @param x
    */
   applyX (x: number) {
     return this.x * this.k * x
@@ -68,7 +68,7 @@ class Transform {
 
   /**
    * 对指定值做y轴变换
-   * @param y 
+   * @param y
    */
   applyY (y: number) {
     return this.y + this.k * y
@@ -76,7 +76,7 @@ class Transform {
 
   /**
    * 对指定点撤销变换
-   * @param location 
+   * @param location
    */
   invert ([x, y]: PointCoords): PointCoords {
     return [(x - this.x) / this.k, (y - this.y) / this.k]
@@ -84,7 +84,7 @@ class Transform {
 
   /**
    * 对指定值撤销x轴变换
-   * @param x 
+   * @param x
    */
   invertX (x: number) {
     return (x - this.x) / this.k
@@ -92,7 +92,7 @@ class Transform {
 
   /**
    * 对指定值撤销y轴变换
-   * @param y 
+   * @param y
    */
   invertY (y: number) {
     return (y - this.y) / this.k

@@ -1,6 +1,6 @@
 /*
- * @Author: 阿佑[ayooooo@petalmail.com] 
- * @Date: 2022-07-06 15:48:38 
+ * @Author: 阿佑[ayooooo@petalmail.com]
+ * @Date: 2022-07-06 15:48:38
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-08 18:56:12
  */
@@ -23,7 +23,6 @@ class NaNie {
       } else {
         mouseZoom(target, this.zoom.bind(this))
       }
-
     } else {
       throw new Error('Invalid zoom target')
     }
@@ -35,7 +34,8 @@ class NaNie {
 
   zoom (e: ZoomEvent) {
     const transform = e.transform
-    this.target.style.transform = `translate(${transform.x}px, ${transform.y}px)`
+    // console.log(transform.x)
+    this.target.style.transform = `translate(${transform.x}px, ${transform.y}px) scale(${transform.k})`
   }
 
   apply () {}
