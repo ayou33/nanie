@@ -31,15 +31,15 @@ class Point {
     return Math.sqrt(((this.x - p.x) ** 2) + ((this.y - p.y) ** 2))
   }
 
-  offsetOf (p: Point): PointCoords {
+  offsetFrom (p: Point): PointCoords {
     return [p.x - this.x, p.y - this.y]
   }
 
-  offsetXOf (x: number) {
+  offsetXFrom (x: number) {
     return this.x - x
   }
 
-  offsetYOf (y: number) {
+  offsetYFrom (y: number) {
     return this.y - y
   }
 

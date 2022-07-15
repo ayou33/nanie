@@ -53,22 +53,22 @@ function mouseZoom (target: HTMLElement, callback: ZoomCallback) {
     const k = scaleTo(e, transform.k)
 
     // 奇点
-    const singularity = new Point(e.clientX, e.clientY)
+    const singularity = Point.from(transform.invert([e.clientX, e.clientY]))
 
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
 
-    const rect= (e.currentTarget as HTMLElement).getBoundingClientRect()
+    const center = Point.from(transform.invert([rect.left + rect.width / 2, rect.top + rect.height / 2]))
 
-    const center = new Point(rect.left + rect.width / 2, rect.top + rect.height / 2)
+    const offset = Point.from(singularity.offsetFrom(center)).scale(k)
 
-    const offset = Point.from(singularity.offsetOf(center))
+    const translatedCenter = new Point(e.clientX, e.clientY).translate(offset.value())
+    // const newCenter = singularity.translate(scaledOffset.value())
 
-    const scaledOffset = offset.scale(k / transform.k)
+    console.log(singularity, center, transform, rect, e.clientX, e.clientY)
 
-    console.log(center, scaledOffset, center.offsetOf(scaledOffset.translate(center.value())))
+    transform = new Transform(k, translatedCenter.x - offset.x, translatedCenter.y - offset.y)
 
-    transform = new Transform(k, ...center.offsetOf(scaledOffset.translate(center.value())))
-
-    // transform = translate(scale(transform, k), Point.from(pointMouse(e)), singularity)
+    // transform = translate(scale(transform, k), translatedCenter, offset)
 
     emit('zoom', e)
 
