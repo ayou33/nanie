@@ -4,7 +4,7 @@
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-08 18:58:05
  */
-import { ZoomCallback, noDefaultAndPopogation, ZoomType, translate, scale, scaleTo, pointMouse } from './zoom'
+import { ZoomCallback, noDefaultAndPopogation, ZoomType, translate, scaleTo } from './zoom'
 import Transform from './Transform'
 import Point from './Point'
 
@@ -24,11 +24,11 @@ function mouseZoom (target: HTMLElement, callback: ZoomCallback) {
     const start = Point.from(transform.invert([e.clientX, e.clientY]))
 
     function onMouseMove (e: MouseEvent) {
-      noDefaultAndPopogation(e)
-
       transform = translate(transform, new Point(e.clientX, e.clientY), start)
 
       emit('zoom', e)
+
+      noDefaultAndPopogation(e)
     }
 
     function onMouseUp (e: MouseEvent) {
@@ -53,22 +53,17 @@ function mouseZoom (target: HTMLElement, callback: ZoomCallback) {
     const k = scaleTo(e, transform.k)
 
     // 奇点
-    const singularity = Point.from(transform.invert([e.clientX, e.clientY]))
+    const singularity = Point.from([e.clientX, e.clientY])
 
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
 
-    const center = Point.from(transform.invert([rect.left + rect.width / 2, rect.top + rect.height / 2]))
+    const center = Point.from([rect.left + rect.width / 2, rect.top + rect.height / 2])
 
-    const offset = Point.from(singularity.offsetFrom(center)).scale(k)
+    const offset = Point.from(singularity.offsetFrom(center))
 
-    const translatedCenter = new Point(e.clientX, e.clientY).translate(offset.value())
-    // const newCenter = singularity.translate(scaledOffset.value())
+    const scaledOffset = offset.scale((k - transform.k) / transform.k)
 
-    console.log(singularity, center, transform, rect, e.clientX, e.clientY)
-
-    transform = new Transform(k, translatedCenter.x - offset.x, translatedCenter.y - offset.y)
-
-    // transform = translate(scale(transform, k), translatedCenter, offset)
+    transform = new Transform(k, transform.x + scaledOffset.x, transform.y + scaledOffset.y)
 
     emit('zoom', e)
 
