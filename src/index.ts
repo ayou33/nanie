@@ -8,8 +8,28 @@ import touchZoom from './touchZoom'
 import { ZoomEvent } from './zoom'
 import mouseZoom from './mouseZoom'
 
+function isPC () {
+  const userAgentInfo = navigator.userAgent
+  const Agents = [
+    'Android', 'iPhone',
+    'SymbianOS', 'Windows Phone',
+    'iPad', 'iPod',
+  ]
+
+  let flag = true
+
+  for (let v = 0; v < Agents.length; v++) {
+    if (userAgentInfo.indexOf(Agents[v]) > 0) {
+      flag = false
+      break
+    }
+  }
+
+  return flag
+}
+
 function isTouchable () {
-  return navigator.maxTouchPoints || ("ontouchstart" in window)
+  return navigator.maxTouchPoints || ('ontouchstart' in window)
 }
 
 class NaNie {
@@ -19,7 +39,7 @@ class NaNie {
     if (target instanceof Element) {
       this.target = target
 
-      if (isTouchable()) {
+      if (!isPC() && isTouchable()) {
         touchZoom(target, this.zoom.bind(this))
       } else {
         mouseZoom(target, this.zoom.bind(this))
@@ -29,9 +49,11 @@ class NaNie {
     }
   }
 
-  easeOut () {}
+  easeOut () {
+  }
 
-  scale () {}
+  scale () {
+  }
 
   zoom (e: ZoomEvent) {
     console.log(e.type)
@@ -39,7 +61,8 @@ class NaNie {
     this.target.style.transform = `translate(${transform.x}px, ${transform.y}px) scale(${transform.k})`
   }
 
-  apply () {}
+  apply () {
+  }
 }
 
 export default NaNie
