@@ -4,7 +4,7 @@
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-08 18:58:05
  */
-import { ZoomCallback, noDefaultAndPopogation, ZoomType, translate, scaleTo } from './zoom'
+import { ZoomCallback, noDefaultAndPopogation, ZoomType, translate, scale } from './zoom'
 import Transform from './Transform'
 import Point from './Point'
 
@@ -48,9 +48,8 @@ function mouseZoom (target: HTMLElement, callback: ZoomCallback) {
     e.stopImmediatePropagation()
   }
 
-
   function onWheel (e: WheelEvent) {
-    const k = scaleTo(e, transform.k)
+    const k = scale(e, transform.k)
 
     // 奇点
     const singularity = Point.from([e.clientX, e.clientY])

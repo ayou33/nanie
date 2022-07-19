@@ -4,6 +4,7 @@
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-08 18:56:12
  */
+import touchZoom from './touchZoom'
 import { ZoomEvent } from './zoom'
 import mouseZoom from './mouseZoom'
 
@@ -19,7 +20,7 @@ class NaNie {
       this.target = target
 
       if (isTouchable()) {
-        mouseZoom(target, this.zoom.bind(this))
+        touchZoom(target, this.zoom.bind(this))
       } else {
         mouseZoom(target, this.zoom.bind(this))
       }
@@ -33,8 +34,8 @@ class NaNie {
   scale () {}
 
   zoom (e: ZoomEvent) {
+    console.log(e.type)
     const transform = e.transform
-    // console.log(transform.x)
     this.target.style.transform = `translate(${transform.x}px, ${transform.y}px) scale(${transform.k})`
   }
 
