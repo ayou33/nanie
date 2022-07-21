@@ -4,7 +4,7 @@
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-08 18:58:05
  */
-import { ZoomCallback, noDefaultAndPopogation, ZoomType, translate, scale } from './zoom'
+import { ZoomCallback, noDefaultAndPropagation, ZoomType, translate, scaleViaWheel } from './zoom'
 import Transform from './Transform'
 import Point from './Point'
 
@@ -15,7 +15,7 @@ function mouseZoom (target: HTMLElement, callback: ZoomCallback) {
     callback({
       sourceEvent: e,
       type,
-      transform,
+      transform: transform.clone(),
     })
   }
 
@@ -28,7 +28,7 @@ function mouseZoom (target: HTMLElement, callback: ZoomCallback) {
 
       emit('zoom', e)
 
-      noDefaultAndPopogation(e)
+      noDefaultAndPropagation(e)
     }
 
     function onMouseUp (e: MouseEvent) {
@@ -49,24 +49,20 @@ function mouseZoom (target: HTMLElement, callback: ZoomCallback) {
   }
 
   function onWheel (e: WheelEvent) {
-    const k = scale(e, transform.k)
+    const k = scaleViaWheel(e, transform.k)
 
     // 奇点
-    const singularity = Point.from([e.clientX, e.clientY])
+    const singularity = Point.from(transform.invert([e.clientX, e.clientY]))
 
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-
-    const center = Point.from([rect.left + rect.width / 2, rect.top + rect.height / 2])
-
-    const offset = Point.from(singularity.offsetFrom(center))
-
-    const scaledOffset = offset.scale((k - transform.k) / transform.k)
-
-    transform = new Transform(k, transform.x + scaledOffset.x, transform.y + scaledOffset.y)
+    transform = translate(
+      new Transform(k, transform.x, transform.y),
+      new Point(e.clientX, e.clientY),
+      singularity,
+    )
 
     emit('zoom', e)
 
-    noDefaultAndPopogation(e)
+    noDefaultAndPropagation(e)
   }
 
   target.addEventListener('mousedown', onMouseDown)

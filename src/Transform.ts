@@ -17,45 +17,9 @@ class Transform {
     this.y = y
   }
 
-  /**
-   * 缩放
-   * @param k
-   */
   scale (k: number) {
-    return k === 1 ? this : new Transform(k, this.x, this.y)
-  }
-
-  /**
-   * 偏移
-   * @param x
-   * @param y
-   */
-  translate (x: number, y: number) {
-    return x === 0 && y === 0 ? this : new Transform(this.k, this.x + this.k * x, this.y + this.k * y)
-  }
-
-  /**
-   * x轴偏移
-   * @param x
-   */
-  translateX (x: number) {
-    return x === 0 ? this : new Transform(this.k, this.x + this.k * x, this.y)
-  }
-
-  /**
-   * y轴偏移
-   * @param y
-   */
-  translateY (y: number) {
-    return y === 0 ? this : new Transform(this.k, this.x, this.y + this.k * y)
-  }
-
-  /**
-   * 对指定点应用变换
-   * @param p
-   */
-  apply ([x, y]: PointCoords): PointCoords {
-    return [this.x + this.k * x, this.y + this.k * y]
+    if (k !== 1) this.k *= k
+    return this
   }
 
   /**
@@ -75,11 +39,11 @@ class Transform {
   }
 
   /**
-   * 对指定点撤销变换
-   * @param location
+   * 对指定点应用变换
+   * @param p
    */
-  invert ([x, y]: PointCoords): PointCoords {
-    return [(x - this.x) / this.k, (y - this.y) / this.k]
+  apply ([x, y]: PointCoords): PointCoords {
+    return [this.applyX(x), this.applyY(y)]
   }
 
   /**
@@ -98,8 +62,20 @@ class Transform {
     return (y - this.y) / this.k
   }
 
+  /**
+   * 对指定点撤销变换
+   * @param location
+   */
+  invert ([x, y]: PointCoords): PointCoords {
+    return [this.invertX(x), this.invertY(y)]
+  }
+
   identity () {
     return new Transform(1, 0, 0)
+  }
+
+  clone () {
+    return new Transform(this.k, this.x, this.y)
   }
 }
 
