@@ -4,9 +4,9 @@
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-08 18:58:05
  */
-import { ZoomCallback, noDefaultAndPropagation, ZoomType, translate, scaleViaWheel } from './zoom'
+import { ZoomCallback, noDefaultAndPropagation, ZoomType, translate, scaleViaWheel, centerOf } from './zoom'
 import Transform from './Transform'
-import Point from './Point'
+import Point, { PointCoords } from './Point'
 
 function mouseZoom (target: HTMLElement, callback: ZoomCallback) {
   let transform = new Transform()
@@ -51,12 +51,18 @@ function mouseZoom (target: HTMLElement, callback: ZoomCallback) {
   function onWheel (e: WheelEvent) {
     const k = scaleViaWheel(e, transform.k)
 
+    const center = Point.from(centerOf(e.currentTarget as HTMLElement))
+
+    const offset = new Point(e.clientX, e.clientY).offsetFrom(center)
+
+    const p: PointCoords = [transform.x - offset[0], transform.y - offset[1]]
+
     // 奇点
-    const singularity = Point.from(transform.invert([e.clientX, e.clientY]))
+    const singularity = Point.from(transform.invert(p))
 
     transform = translate(
       new Transform(k, transform.x, transform.y),
-      new Point(e.clientX, e.clientY),
+      Point.from(p),
       singularity,
     )
 
