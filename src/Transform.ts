@@ -4,7 +4,7 @@
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-06 15:02:37
  */
-import { PointCoords } from './Point'
+import { Vector } from './Point'
 
 class Transform {
   k = 1
@@ -15,11 +15,6 @@ class Transform {
     this.k = k
     this.x = x
     this.y = y
-  }
-
-  scale (k: number) {
-    if (k !== 1) this.k *= k
-    return this
   }
 
   /**
@@ -42,7 +37,7 @@ class Transform {
    * 对指定点应用变换
    * @param p
    */
-  apply ([x, y]: PointCoords): PointCoords {
+  apply ([x, y]: Vector): Vector {
     return [this.applyX(x), this.applyY(y)]
   }
 
@@ -66,7 +61,7 @@ class Transform {
    * 对指定点撤销变换
    * @param location
    */
-  invert ([x, y]: PointCoords): PointCoords {
+  invert ([x, y]: Vector): Vector {
     return [this.invertX(x), this.invertY(y)]
   }
 

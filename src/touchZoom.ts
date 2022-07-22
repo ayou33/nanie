@@ -31,8 +31,7 @@ function touchZoom (target: HTMLElement, callback: ZoomCallback) {
     fingers.use(e)
 
     function onTouchMove (e: TouchEvent) {
-      // transform = zoom(e)
-      transform = fingers.transfer(e)
+      transform = fingers.translate(e)
 
       emit('zoom', e)
 

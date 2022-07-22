@@ -56,7 +56,6 @@ class NaNie {
   }
 
   zoom (e: ZoomEvent) {
-    console.log(e.type)
     const transform = e.transform
     this.target.style.transform = `translate(${transform.x}px, ${transform.y}px) scale(${transform.k})`
   }

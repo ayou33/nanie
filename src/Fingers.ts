@@ -3,9 +3,9 @@
  *  @date 2022/7/21 14:11
  *  @author 阿佑[ayooooo@petalmail.com]
  */
-import Point, { PointCoords } from './Point'
+import Point, { Vector } from './Point'
 import Transform from './Transform'
-import { translate } from './zoom'
+import { centerOf, scale, translate } from './zoom'
 
 export type Finger = {
   touch: Touch;
@@ -15,16 +15,24 @@ export type Finger = {
 
 const toList = (touches: TouchList): Touch[] => [].slice.call(touches)
 
-function of (e: Touch): PointCoords {
+function of (e: Touch): Vector {
   return [e.clientX, e.clientY]
 }
 
 class Fingers {
-  private readonly transform: Transform
+  private transform: Transform
   private fingers: Finger[] = []
+  private scaleRef = 1
 
   constructor (transform: Transform) {
     this.transform = transform
+  }
+
+  private updateScaleRef () {
+    if (this.count() >= 2) {
+      this.scaleRef = Point.from(of(this.fingers[0].touch))
+                           .distance(Point.from(of(this.fingers[1].touch))) / this.transform.k
+    }
   }
 
   use (e: TouchEvent) {
@@ -32,9 +40,11 @@ class Fingers {
       this.fingers.push({
         touch,
         id: touch.identifier,
-        start: Point.from([touch.clientX, touch.clientY]),
+        start: Point.from(this.transform.invert([touch.clientX, touch.clientY])),
       })
     })
+
+    this.updateScaleRef()
   }
 
   release (e: TouchEvent) {
@@ -57,19 +67,45 @@ class Fingers {
     }
 
     this.fingers.length = ++cursor
+
+    this.updateScaleRef()
   }
 
-  transfer (e: TouchEvent) {
-    if (this.fingers.length > 1) {
-      // e.currentTarget.textContent = scale(1, 0.3)
-      return this.transform
+  private zoom (fingers: Touch[], el: HTMLElement) {
+    const k = Point.from(of(fingers[0])).distance(Point.from(of(fingers[1]))) / this.scaleRef
+
+    const p: Vector = [(fingers[0].clientX + fingers[1].clientX) / 2, (fingers[0].clientY + fingers[1].clientY) / 2]
+
+    const offset = Point.from(p).offsetFrom(Point.from(centerOf(el)))
+
+    const p0: Vector = [this.transform.x - offset[0], this.transform.y - offset[1]]
+
+    const singularity = Point.from(this.transform.invert(p0))
+
+    return translate(scale(this.transform, k), Point.from(p0), singularity)
+  }
+
+  translate (e: TouchEvent) {
+    if (this.fingers.length >= 2) {
+      const touches = e.touches
+      const activeFingers = this.fingers.map(f => f.id)
+      const fingers: Touch[] = []
+
+      for (let i = 0; i < e.touches.length && fingers.length < this.count(); i++) {
+        const touch = touches[i]
+        if (activeFingers.indexOf(touch.identifier) !== -1) {
+          fingers.push(touch)
+        }
+      }
+
+      return this.transform = this.zoom(fingers, e.currentTarget as HTMLElement)
     }
 
     /**
      * pan
      */
     if (this.fingers.length === 1) {
-      return translate(this.transform, Point.from(of(e.changedTouches[0])), this.fingers[0].start)
+      return this.transform = translate(this.transform, Point.from(of(e.changedTouches[0])), this.fingers[0].start)
     }
 
     return this.transform

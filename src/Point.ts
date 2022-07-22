@@ -4,7 +4,7 @@
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-08 18:47:09
  */
-export type PointCoords = [x: number, y: number]
+export type Vector = [x: number, y: number]
 
 class Point {
   x: number
@@ -15,11 +15,11 @@ class Point {
     this.y = y
   }
 
-  static from ([x, y]: PointCoords) {
+  static from ([x, y]: Vector) {
     return new Point(x, y)
   }
 
-  translate ([dx, dy]: PointCoords) {
+  translate ([dx, dy]: Vector) {
     return new Point(this.x + dx, this.y + dy)
   }
 
@@ -31,7 +31,7 @@ class Point {
     return Math.sqrt(((this.x - p.x) ** 2) + ((this.y - p.y) ** 2))
   }
 
-  offsetFrom (p: Point): PointCoords {
+  offsetFrom (p: Point): Vector {
     return [p.x - this.x, p.y - this.y]
   }
 
@@ -43,7 +43,7 @@ class Point {
     return this.y - y
   }
 
-  value (): PointCoords {
+  value (): Vector {
     return [this.x, this.y]
   }
 }
