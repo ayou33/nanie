@@ -5,17 +5,10 @@
  * @Last Modified time: 2022-07-06 16:35:52
  */
 import Fingers from './Fingers'
-import Point from './Point'
-import Transform from './Transform'
+import Transform, { TransformLimit } from './Transform'
 import { noDefaultAndPropagation, ZoomCallback, ZoomType } from './zoom'
 
-export type Finger = {
-  touch: Touch;
-  id: number;
-  start: Point;
-}
-
-function touchZoom (target: HTMLElement, callback: ZoomCallback) {
+export function touchZoom (target: HTMLElement, callback: ZoomCallback, limit: TransformLimit) {
   let transform = new Transform()
   const fingers = new Fingers(transform)
 
@@ -31,7 +24,7 @@ function touchZoom (target: HTMLElement, callback: ZoomCallback) {
     fingers.use(e)
 
     function onTouchMove (e: TouchEvent) {
-      transform = fingers.translate(e)
+      transform = fingers.translate(e, limit)
 
       emit('zoom', e)
 

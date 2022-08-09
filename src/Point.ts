@@ -6,6 +6,8 @@
  */
 export type Vector = [x: number, y: number]
 
+export type Bound = [Vector, Vector]
+
 class Point {
   x: number
   y: number

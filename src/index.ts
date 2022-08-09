@@ -5,6 +5,7 @@
  * @Last Modified time: 2022-07-08 18:56:12
  */
 import touchZoom from './touchZoom'
+import { TransformLimit } from './Transform'
 import { ZoomEvent } from './zoom'
 import mouseZoom from './mouseZoom'
 
@@ -32,36 +33,47 @@ function isTouchable () {
   return navigator.maxTouchPoints || ('ontouchstart' in window)
 }
 
-class NaNie {
-  target: HTMLElement
-
-  constructor (target: HTMLElement | null) {
-    if (target instanceof Element) {
-      this.target = target
-
-      if (!isPC() && isTouchable()) {
-        touchZoom(target, this.zoom.bind(this))
-      } else {
-        mouseZoom(target, this.zoom.bind(this))
-      }
-    } else {
-      throw new Error('Invalid zoom target')
-    }
-  }
-
-  easeOut () {
-  }
-
-  scale () {
-  }
-
-  zoom (e: ZoomEvent) {
-    const transform = e.transform
-    this.target.style.transform = `translate(${transform.x}px, ${transform.y}px) scale(${transform.k})`
-  }
-
-  apply () {
-  }
+const defaultNaNieOptions: TransformLimit = {
+  translateExtent: [[-Infinity, -Infinity], [Infinity, Infinity]],
+  scaleExtent: [0.1, Infinity],
 }
 
-export default NaNie
+export type ZoomHandler = (this: HTMLElement, e: ZoomEvent) => void
+
+export function nanie (
+  target: HTMLElement,
+  mixed?: Partial<TransformLimit> | ZoomHandler,
+  onZoom?: ZoomHandler,
+) {
+  let options = defaultNaNieOptions
+  let zoomHandler: ZoomHandler = e => e
+
+  if ('function' === typeof mixed) {
+    zoomHandler = mixed
+  }
+
+  if ('object' === typeof mixed) {
+    options = Object.assign(defaultNaNieOptions, mixed)
+    zoomHandler = onZoom ?? zoomHandler
+  }
+
+  let stop = () => {}
+
+  function zoom (e: ZoomEvent) {
+    zoomHandler?.call(target, e)
+  }
+
+  if (target instanceof Element) {
+    if (!isPC() && isTouchable()) {
+      stop = touchZoom(target, zoom, options)
+    } else {
+      stop = mouseZoom(target, zoom, options)
+    }
+  } else {
+    throw new Error('Invalid zoom target')
+  }
+
+  return stop
+}
+
+export default nanie

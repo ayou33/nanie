@@ -4,9 +4,14 @@
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-06 15:02:37
  */
-import { Vector } from './Point'
+import { Bound, Vector } from './Point'
 
-class Transform {
+export type TransformLimit = {
+  translateExtent: Bound,
+  scaleExtent: Vector,
+}
+
+export class Transform {
   k = 1
   x = 0
   y = 0
@@ -15,6 +20,10 @@ class Transform {
     this.k = k
     this.x = x
     this.y = y
+  }
+
+  translate (x: number, y: number) {
+    return x === 0 && y === 0 ? this : new Transform(this.k, this.x + this.k * x, this.y + this.k * y)
   }
 
   /**

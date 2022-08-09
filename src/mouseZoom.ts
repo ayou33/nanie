@@ -4,11 +4,22 @@
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-08 18:58:05
  */
-import { ZoomCallback, noDefaultAndPropagation, ZoomType, translate, scaleViaWheel, centerOf, scale } from './zoom'
-import Transform from './Transform'
-import Point, { Vector } from './Point'
+import {
+  ZoomCallback,
+  noDefaultAndPropagation,
+  ZoomType,
+  translate,
+  scaleViaWheel,
+  centerOf,
+  scale,
+  constrain,
+} from './zoom'
+import Transform, { TransformLimit } from './Transform'
+import Point, { Bound, Vector } from './Point'
 
-function mouseZoom (target: HTMLElement, callback: ZoomCallback) {
+export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: TransformLimit) {
+  const rect = target.getBoundingClientRect()
+  let extent: Bound = [[rect.x, rect.y], [rect.x + rect.width, rect.y + rect.height]]
   let transform = new Transform()
 
   function emit (type: ZoomType, e: MouseEvent) {
@@ -24,7 +35,7 @@ function mouseZoom (target: HTMLElement, callback: ZoomCallback) {
     const start = Point.from(transform.invert([e.clientX, e.clientY]))
 
     function onMouseMove (e: MouseEvent) {
-      transform = translate(transform, new Point(e.clientX, e.clientY), start)
+      transform = constrain(translate(transform, new Point(e.clientX, e.clientY), start), extent, limit)
 
       emit('zoom', e)
 
@@ -60,7 +71,7 @@ function mouseZoom (target: HTMLElement, callback: ZoomCallback) {
     // 奇点
     const singularity = Point.from(transform.invert(p))
 
-    transform = translate(scale(transform, k), Point.from(p), singularity)
+    transform = constrain(translate(scale(transform, k, limit), Point.from(p), singularity), extent, limit)
 
     emit('zoom', e)
 
