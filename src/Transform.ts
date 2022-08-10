@@ -81,6 +81,10 @@ export class Transform {
   clone () {
     return new Transform(this.k, this.x, this.y)
   }
+
+  diff (t: Transform) {
+    return new Transform(t.x - this.x, t.y - this.y, t.k / this.k)
+  }
 }
 
 export default Transform
