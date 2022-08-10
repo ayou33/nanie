@@ -83,7 +83,7 @@ export class Transform {
   }
 
   diff (t: Transform) {
-    return new Transform(t.x - this.x, t.y - this.y, t.k / this.k)
+    return new Transform(t.k/ this.k, t.x - this.x, t.y - this.y)
   }
 }
 
