@@ -14,13 +14,14 @@ import {
   scale,
   constrain,
 } from './zoom'
-import Transform, { TransformLimit } from './Transform'
-import Point, { Bound, Vector } from './Point'
+import Transform, { TransformExtent } from './Transform'
+import Point, { Bounding, Vector } from './Point'
 
-export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: TransformLimit) {
+export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: TransformExtent) {
   const rect = target.getBoundingClientRect()
-  let extent: Bound = [[rect.x, rect.y], [rect.x + rect.width, rect.y + rect.height]]
+  let bounding: Bounding = [[rect.x, rect.y], [rect.x + rect.width, rect.y + rect.height]]
   let transform = new Transform()
+  let transformLimit = limit
 
   function emit (type: ZoomType, e: MouseEvent) {
     callback({
@@ -35,7 +36,7 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
     const start = Point.from(transform.invert([e.clientX, e.clientY]))
 
     function onMouseMove (e: MouseEvent) {
-      transform = constrain(translate(transform, new Point(e.clientX, e.clientY), start), extent, limit)
+      transform = constrain(translate(transform, new Point(e.clientX, e.clientY), start), bounding, transformLimit)
 
       emit('zoom', e)
 
@@ -71,7 +72,7 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
     // 奇点
     const singularity = Point.from(transform.invert(p))
 
-    transform = constrain(translate(scale(transform, k, limit), Point.from(p), singularity), extent, limit)
+    transform = constrain(translate(scale(transform, k, limit), Point.from(p), singularity), bounding, transformLimit)
 
     emit('zoom', e)
 
@@ -81,9 +82,13 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
   target.addEventListener('mousedown', onMouseDown)
   target.addEventListener('wheel', onWheel)
 
-  return () => {
-    target.removeEventListener('mousedown', onMouseDown)
-    target.removeEventListener('wheel', onWheel)
+  return function constrain (limit?: TransformExtent) {
+    if (undefined !== limit) {
+      transformLimit = limit
+    } else {
+      target.removeEventListener('mousedown', onMouseDown)
+      target.removeEventListener('wheel', onWheel)
+    }
   }
 }
 

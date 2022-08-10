@@ -4,10 +4,10 @@
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-06 15:02:37
  */
-import { Bound, Vector } from './Point'
+import { Bounding, Vector } from './Point'
 
-export type TransformLimit = {
-  translateExtent: Bound,
+export type TransformExtent = {
+  translateExtent: Bounding,
   scaleExtent: Vector,
 }
 
@@ -31,7 +31,7 @@ export class Transform {
    * @param x
    */
   applyX (x: number) {
-    return this.x * this.k * x
+    return this.x + this.k * x
   }
 
   /**

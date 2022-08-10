@@ -3,9 +3,9 @@
  *  @date 2022/7/21 14:11
  *  @author 阿佑[ayooooo@petalmail.com]
  */
-import Point, { Vector } from './Point'
-import Transform, { TransformLimit } from './Transform'
-import { centerOf, scale, translate } from './zoom'
+import Point, { Bounding, Vector } from './Point'
+import Transform, { TransformExtent } from './Transform'
+import { centerOf, constrain, scale, translate } from './zoom'
 
 export type Finger = {
   touch: Touch;
@@ -71,7 +71,7 @@ export class Fingers {
     this.updateScaleRef()
   }
 
-  private zoom (fingers: Touch[], el: HTMLElement, limit: TransformLimit) {
+  private zoom (fingers: Touch[], el: HTMLElement, bouding: Bounding, limit: TransformExtent) {
     const k = Point.from(of(fingers[0])).distance(Point.from(of(fingers[1]))) / this.scaleRef
 
     const p: Vector = [(fingers[0].clientX + fingers[1].clientX) / 2, (fingers[0].clientY + fingers[1].clientY) / 2]
@@ -82,10 +82,10 @@ export class Fingers {
 
     const singularity = Point.from(this.transform.invert(p0))
 
-    return translate(scale(this.transform, k, limit), Point.from(p0), singularity)
+    return constrain(translate(scale(this.transform, k, limit), Point.from(p0), singularity), bouding, limit)
   }
 
-  translate (e: TouchEvent, limit: TransformLimit) {
+  translate (e: TouchEvent, bounding: Bounding, limit: TransformExtent) {
     if (this.fingers.length >= 2) {
       const touches = e.touches
       const activeFingers = this.fingers.map(f => f.id)
@@ -98,7 +98,7 @@ export class Fingers {
         }
       }
 
-      return this.transform = this.zoom(fingers, e.currentTarget as HTMLElement, limit)
+      return this.transform = this.zoom(fingers, e.currentTarget as HTMLElement, bounding, limit)
     }
 
     /**

@@ -5,7 +5,7 @@
  * @Last Modified time: 2022-07-08 18:56:12
  */
 import touchZoom from './touchZoom'
-import { TransformLimit } from './Transform'
+import { TransformExtent } from './Transform'
 import { ZoomEvent } from './zoom'
 import mouseZoom from './mouseZoom'
 
@@ -33,16 +33,22 @@ function isTouchable () {
   return navigator.maxTouchPoints || ('ontouchstart' in window)
 }
 
-const defaultNaNieOptions: TransformLimit = {
-  translateExtent: [[-Infinity, -Infinity], [Infinity, Infinity]],
-  scaleExtent: [0.1, Infinity],
+export type NaNieOptions = {
+  limit: TransformExtent,
+}
+
+const defaultNaNieOptions: NaNieOptions = {
+  limit: {
+    translateExtent: [[-Infinity, -Infinity], [Infinity, Infinity]],
+    scaleExtent: [0.1, Infinity],
+  }
 }
 
 export type ZoomHandler = (this: HTMLElement, e: ZoomEvent) => void
 
 export function nanie (
   target: HTMLElement,
-  mixed?: Partial<TransformLimit> | ZoomHandler,
+  mixed?: Partial<NaNieOptions> | ZoomHandler,
   onZoom?: ZoomHandler,
 ) {
   let options = defaultNaNieOptions
@@ -57,7 +63,7 @@ export function nanie (
     zoomHandler = onZoom ?? zoomHandler
   }
 
-  let stop = () => {}
+  let constrain: (limit?: TransformExtent) => void = () => {}
 
   function zoom (e: ZoomEvent) {
     zoomHandler?.call(target, e)
@@ -65,15 +71,15 @@ export function nanie (
 
   if (target instanceof Element) {
     if (!isPC() && isTouchable()) {
-      stop = touchZoom(target, zoom, options)
+      constrain = touchZoom(target, zoom, options.limit)
     } else {
-      stop = mouseZoom(target, zoom, options)
+      constrain = mouseZoom(target, zoom, options.limit)
     }
   } else {
     throw new Error('Invalid zoom target')
   }
 
-  return stop
+  return constrain
 }
 
 export default nanie
