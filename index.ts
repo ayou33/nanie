@@ -1,1 +1,3 @@
-export * from './src'
+import nanie from './src'
+
+export default nanie
