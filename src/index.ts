@@ -5,8 +5,8 @@
  * @Last Modified time: 2022-07-08 18:56:12
  */
 import touchZoom from './touchZoom'
-import { TransformExtent } from './Transform'
-import { ZoomEvent } from './zoom'
+import { Transform, TransformExtent } from './Transform'
+import { ZoomCallback, ZoomEvent } from './zoom'
 import mouseZoom from './mouseZoom'
 
 function isPC () {
@@ -41,10 +41,10 @@ const defaultNaNieOptions: NaNieOptions = {
   limit: {
     translateExtent: [[-Infinity, -Infinity], [Infinity, Infinity]],
     scaleExtent: [0.1, Infinity],
-  }
+  },
 }
 
-export type ZoomHandler = (this: HTMLElement, e: ZoomEvent) => void
+export type ZoomHandler = (this: HTMLElement, e: ZoomEvent, correct?: (t: Transform) => void) => void
 
 export function nanie (
   target: HTMLElement,
@@ -65,8 +65,8 @@ export function nanie (
 
   let constrain: (limit?: TransformExtent) => void = () => {}
 
-  function zoom (e: ZoomEvent) {
-    zoomHandler?.call(target, e)
+  const zoom: ZoomCallback = (e: ZoomEvent, c) => {
+    zoomHandler?.call(target, e, c)
   }
 
   if (target instanceof Element) {
