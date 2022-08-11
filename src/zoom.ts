@@ -9,7 +9,7 @@ export type ZoomEvent = {
   transform: Transform;
 }
 
-export type ZoomCallback = (e: ZoomEvent, correct?: (t: Transform) => void) => void
+export type ZoomCallback = (e: ZoomEvent, correct: (t: Transform) => void) => void
 
 export const noDefaultAndPropagation = (e: Event) => {
   e.preventDefault()

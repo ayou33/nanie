@@ -44,7 +44,7 @@ const defaultNaNieOptions: NaNieOptions = {
   },
 }
 
-export type ZoomHandler = (this: HTMLElement, e: ZoomEvent, correct?: (t: Transform) => void) => void
+export type ZoomHandler = (this: HTMLElement, e: ZoomEvent, correct: (t: Transform) => void) => void
 
 export function nanie (
   target: HTMLElement,
