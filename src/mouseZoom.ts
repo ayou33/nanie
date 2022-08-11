@@ -28,7 +28,7 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
       sourceEvent: e,
       type,
       transform,
-    })
+    }, t => transform = t)
   }
 
   function onMouseDown (e: MouseEvent) {
