@@ -46,7 +46,7 @@ const defaultNaNieOptions: NaNieOptions = {
 
 export type ZoomHandler = (this: HTMLElement, e: ZoomEvent, correct: (t: Transform) => void) => void
 
-interface API {
+export interface API {
   constrain (limit: TransformExtent): void;
 
   apply (nextTransform: Transform): void;
