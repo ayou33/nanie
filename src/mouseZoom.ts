@@ -82,10 +82,14 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
   target.addEventListener('mousedown', onMouseDown)
   target.addEventListener('wheel', onWheel)
 
-  return function constrain (limit?: TransformExtent) {
-    if (undefined !== limit) {
+  return {
+    constrain (limit: TransformExtent) {
       transformLimit = limit
-    } else {
+    },
+    apply (nextTransform: Transform) {
+      transform = nextTransform
+    },
+    stop () {
       target.removeEventListener('mousedown', onMouseDown)
       target.removeEventListener('wheel', onWheel)
     }

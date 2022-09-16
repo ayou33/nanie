@@ -63,23 +63,19 @@ export function nanie (
     zoomHandler = onZoom ?? zoomHandler
   }
 
-  let constrain: (limit?: TransformExtent) => void = () => {}
-
   const zoom: ZoomCallback = (e: ZoomEvent, c) => {
     zoomHandler?.call(target, e, c)
   }
 
   if (target instanceof Element) {
     if (!isPC() && isTouchable()) {
-      constrain = touchZoom(target, zoom, options.limit)
+      return touchZoom(target, zoom, options.limit)
     } else {
-      constrain = mouseZoom(target, zoom, options.limit)
+      return mouseZoom(target, zoom, options.limit)
     }
   } else {
     throw new Error('Invalid zoom target')
   }
-
-  return constrain
 }
 
 export default nanie
