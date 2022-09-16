@@ -46,11 +46,19 @@ const defaultNaNieOptions: NaNieOptions = {
 
 export type ZoomHandler = (this: HTMLElement, e: ZoomEvent, correct: (t: Transform) => void) => void
 
+interface API {
+  constrain (limit: TransformExtent): void;
+
+  apply (nextTransform: Transform): void;
+
+  stop (): void;
+}
+
 export function nanie (
   target: HTMLElement,
   mixed?: Partial<NaNieOptions> | ZoomHandler,
   onZoom?: ZoomHandler,
-) {
+): API {
   let options = defaultNaNieOptions
   let zoomHandler: ZoomHandler = e => e
 

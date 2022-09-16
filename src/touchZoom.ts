@@ -58,10 +58,14 @@ export function touchZoom (target: HTMLElement, callback: ZoomCallback, limit: T
 
   target.addEventListener('touchstart', onTouchStart)
 
-  return function constrain (limit?: TransformExtent) {
-    if (undefined !== limit) {
+  return {
+    constrain (limit: TransformExtent) {
       transformLimit = limit
-    } else {
+    },
+    apply (nextTransform: Transform) {
+      transform = nextTransform
+    },
+    stop () {
       target.removeEventListener('touchstart', onTouchStart)
     }
   }
