@@ -5,9 +5,11 @@
  * @Last Modified time: 2022-07-08 18:56:12
  */
 import touchZoom from './touchZoom'
-import { Transform, TransformExtent } from './Transform'
+import { Transform as T, TransformExtent } from './Transform'
 import { ZoomCallback, ZoomEvent } from './zoom'
 import mouseZoom from './mouseZoom'
+
+export type Transform = T
 
 function isPC () {
   const userAgentInfo = navigator.userAgent
