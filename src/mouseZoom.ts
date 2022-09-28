@@ -32,12 +32,14 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
   }
 
   function onMouseDown (e: MouseEvent) {
+    let zoomed = false
 
     const start = Point.from(transform.invert([e.clientX, e.clientY]))
 
     function onMouseMove (e: MouseEvent) {
       transform = constrain(translate(transform, new Point(e.clientX, e.clientY), start), bounding, transformLimit)
 
+      zoomed = true
       emit('zoom', e)
 
       noDefaultAndPropagation(e)
@@ -48,7 +50,7 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
       window.removeEventListener('mouseup', onMouseUp)
       window.removeEventListener('mouseleave', onMouseUp)
 
-      emit('end', e)
+      emit(zoomed ? 'end' : 'click', e)
     }
 
     window.addEventListener('mousemove', onMouseMove)
@@ -92,7 +94,7 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
     stop () {
       target.removeEventListener('mousedown', onMouseDown)
       target.removeEventListener('wheel', onWheel)
-    }
+    },
   }
 }
 

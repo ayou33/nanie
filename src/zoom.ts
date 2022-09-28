@@ -1,7 +1,7 @@
 import Point, { Bounding, Vector } from './Point'
 import Transform, { TransformExtent } from './Transform'
 
-export type ZoomType = 'start' | 'zoom' | 'end'
+export type ZoomType = 'start' | 'zoom' | 'end' | 'click'
 
 export type ZoomEvent = {
   sourceEvent: Event;
