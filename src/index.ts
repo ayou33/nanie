@@ -6,7 +6,7 @@
  */
 import touchZoom from './touchZoom'
 import { Transform as T, TransformExtent } from './Transform'
-import { TransformReceiver, ZoomCallback, ZoomEvent as _ZoomEvent } from './zoom'
+import { TransformReceiver as _TransformReceiver, ZoomCallback, ZoomEvent as _ZoomEvent } from './zoom'
 import mouseZoom from './mouseZoom'
 
 export type Transform = T
@@ -47,6 +47,8 @@ const defaultNaNieOptions: NaNieOptions = {
 }
 
 export type ZoomEvent = _ZoomEvent
+
+export type TransformReceiver = _TransformReceiver
 
 export type ZoomHandler = (this: HTMLElement, e: ZoomEvent, correct: (t: Transform) => void) => void
 
