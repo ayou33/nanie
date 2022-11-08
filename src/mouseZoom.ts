@@ -12,7 +12,7 @@ import {
   scaleViaWheel,
   centerOf,
   scale,
-  constrain,
+  constrain, TransformReceiver,
 } from './zoom'
 import Transform, { TransformExtent } from './Transform'
 import Point, { Bounding, Vector } from './Point'
@@ -21,10 +21,17 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
   const rect = target.getBoundingClientRect()
   let bounding: Bounding = [[rect.x, rect.y], [rect.x + rect.width, rect.y + rect.height]]
   let transform = new Transform()
+  let backup = transform
+  let transformReceiver: TransformReceiver | null = null
   let transformLimit = limit
-  let disabled = false
+  let paused = false
 
   function emit (type: ZoomType, e: MouseEvent) {
+    if (paused) {
+      transformReceiver?.(type, transform)
+      return
+    }
+
     callback({
       sourceEvent: e,
       type,
@@ -38,8 +45,6 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
     const start = Point.from(transform.invert([e.clientX, e.clientY]))
 
     function onMouseMove (e: MouseEvent) {
-      if (disabled) return
-
       transform = constrain(translate(transform, new Point(e.clientX, e.clientY), start), bounding, transformLimit)
 
       zoomed = true
@@ -67,8 +72,6 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
   }
 
   function onWheel (e: WheelEvent) {
-    if (disabled) return
-
     const k = scaleViaWheel(e, transform.k)
 
     const center = Point.from(centerOf(e.currentTarget as HTMLElement))
@@ -97,11 +100,14 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
     apply (nextTransform: Transform) {
       transform = nextTransform
     },
-    pause () {
-      disabled = true
+    interrupt (receiver?: TransformReceiver) {
+      backup = transform
+      paused = true
+      if (receiver) transformReceiver = receiver
     },
     continue () {
-      disabled = false
+      transform = backup
+      paused = false
     },
     destroy () {
       target.removeEventListener('mousedown', onMouseDown)

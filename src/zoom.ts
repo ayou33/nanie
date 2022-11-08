@@ -11,6 +11,8 @@ export type ZoomEvent = {
 
 export type ZoomCallback = (e: ZoomEvent, correct: (t: Transform) => void) => void
 
+export type TransformReceiver = (type: ZoomType, transform: Transform) => void
+
 export const noDefaultAndPropagation = (e: Event) => {
   e.preventDefault()
   e.stopImmediatePropagation()

@@ -6,7 +6,7 @@
  */
 import touchZoom from './touchZoom'
 import { Transform as T, TransformExtent } from './Transform'
-import { ZoomCallback, ZoomEvent as _ZoomEvent } from './zoom'
+import { TransformReceiver, ZoomCallback, ZoomEvent as _ZoomEvent } from './zoom'
 import mouseZoom from './mouseZoom'
 
 export type Transform = T
@@ -55,7 +55,7 @@ export interface API {
 
   apply (nextTransform: Transform): void;
 
-  pause (): void;
+  interrupt (receiver?: TransformReceiver): void;
 
   continue (): void;
 

@@ -7,17 +7,24 @@
 import Fingers from './Fingers'
 import { Bounding } from './Point'
 import Transform, { TransformExtent } from './Transform'
-import { noDefaultAndPropagation, ZoomCallback, ZoomType } from './zoom'
+import { noDefaultAndPropagation, TransformReceiver, ZoomCallback, ZoomType } from './zoom'
 
 export function touchZoom (target: HTMLElement, callback: ZoomCallback, limit: TransformExtent) {
   let transform = new Transform()
+  let backup = transform
+  let transformReceiver: TransformReceiver | null = null
   let transformLimit = limit
   const fingers = new Fingers(transform)
   const rect = target.getBoundingClientRect()
   let bounding: Bounding = [[rect.x, rect.y], [rect.x + rect.width, rect.y + rect.height]]
-  let disabled = false
+  let paused = false
 
   function emit (type: ZoomType, e: TouchEvent) {
+    if (paused) {
+      transformReceiver?.(type, transform)
+
+      return
+    }
     callback({
       sourceEvent: e,
       type,
@@ -26,8 +33,6 @@ export function touchZoom (target: HTMLElement, callback: ZoomCallback, limit: T
   }
 
   function onTouchStart (e: TouchEvent) {
-    if (disabled) return
-
     fingers.use(e)
 
     function onTouchMove (e: TouchEvent) {
@@ -68,11 +73,14 @@ export function touchZoom (target: HTMLElement, callback: ZoomCallback, limit: T
     apply (nextTransform: Transform) {
       transform = nextTransform
     },
-    pause () {
-      disabled = true
+    interrupt (receiver?: TransformReceiver) {
+      backup = transform
+      paused = true
+      if (receiver) transformReceiver = receiver
     },
     continue () {
-      disabled = false
+      transform = backup
+      paused = false
     },
     destroy () {
       target.removeEventListener('touchstart', onTouchStart)
