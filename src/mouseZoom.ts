@@ -22,6 +22,7 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
   let bounding: Bounding = [[rect.x, rect.y], [rect.x + rect.width, rect.y + rect.height]]
   let transform = new Transform()
   let transformLimit = limit
+  let disabled = false
 
   function emit (type: ZoomType, e: MouseEvent) {
     callback({
@@ -32,6 +33,8 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
   }
 
   function onMouseDown (e: MouseEvent) {
+    if (disabled) return
+
     let zoomed = false
 
     const start = Point.from(transform.invert([e.clientX, e.clientY]))
@@ -63,6 +66,8 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
   }
 
   function onWheel (e: WheelEvent) {
+    if (disabled) return
+
     const k = scaleViaWheel(e, transform.k)
 
     const center = Point.from(centerOf(e.currentTarget as HTMLElement))
@@ -91,7 +96,13 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
     apply (nextTransform: Transform) {
       transform = nextTransform
     },
-    stop () {
+    pause () {
+      disabled = true
+    },
+    continue () {
+      disabled = false
+    },
+    destroy () {
       target.removeEventListener('mousedown', onMouseDown)
       target.removeEventListener('wheel', onWheel)
     },

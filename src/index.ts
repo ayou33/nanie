@@ -55,7 +55,11 @@ export interface API {
 
   apply (nextTransform: Transform): void;
 
-  stop (): void;
+  pause (): void;
+
+  continue (): void;
+
+  destroy (): void;
 }
 
 export function nanie (

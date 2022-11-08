@@ -15,6 +15,7 @@ export function touchZoom (target: HTMLElement, callback: ZoomCallback, limit: T
   const fingers = new Fingers(transform)
   const rect = target.getBoundingClientRect()
   let bounding: Bounding = [[rect.x, rect.y], [rect.x + rect.width, rect.y + rect.height]]
+  let disabled = false
 
   function emit (type: ZoomType, e: TouchEvent) {
     callback({
@@ -25,6 +26,8 @@ export function touchZoom (target: HTMLElement, callback: ZoomCallback, limit: T
   }
 
   function onTouchStart (e: TouchEvent) {
+    if (disabled) return
+
     fingers.use(e)
 
     function onTouchMove (e: TouchEvent) {
@@ -65,9 +68,15 @@ export function touchZoom (target: HTMLElement, callback: ZoomCallback, limit: T
     apply (nextTransform: Transform) {
       transform = nextTransform
     },
-    stop () {
+    pause () {
+      disabled = true
+    },
+    continue () {
+      disabled = false
+    },
+    destroy () {
       target.removeEventListener('touchstart', onTouchStart)
-    }
+    },
   }
 }
 
