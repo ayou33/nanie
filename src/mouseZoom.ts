@@ -33,16 +33,17 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
   }
 
   function onMouseDown (e: MouseEvent) {
-    if (disabled) return
-
     let zoomed = false
 
     const start = Point.from(transform.invert([e.clientX, e.clientY]))
 
     function onMouseMove (e: MouseEvent) {
+      if (disabled) return
+
       transform = constrain(translate(transform, new Point(e.clientX, e.clientY), start), bounding, transformLimit)
 
       zoomed = true
+
       emit('zoom', e)
 
       noDefaultAndPropagation(e)
