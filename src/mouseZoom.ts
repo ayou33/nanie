@@ -59,7 +59,9 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
       window.removeEventListener('mouseup', onMouseUp)
       window.removeEventListener('mouseleave', onMouseUp)
 
-      emit(zoomed ? 'end' : 'click', e)
+      emit('end', e)
+
+      if (!zoomed) emit('click', e)
     }
 
     window.addEventListener('mousemove', onMouseMove)
