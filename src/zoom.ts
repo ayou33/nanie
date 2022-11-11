@@ -1,17 +1,8 @@
+import mouseZoom from './mouseZoom'
 import Point, { Bounding, Vector } from './Point'
+import touchZoom from './touchZoom'
 import Transform, { TransformExtent } from './Transform'
-
-export type ZoomType = 'start' | 'zoom' | 'end' | 'click'
-
-export type ZoomEvent = {
-  sourceEvent: Event;
-  type: ZoomType;
-  transform: Transform;
-}
-
-export type ZoomCallback = (e: ZoomEvent, correct: (t: Transform) => void) => void
-
-export type TransformReceiver = (type: ZoomType, transform: Transform) => void
+import { TransformReceiver, ZoomCallback, ZoomData, ZoomType } from './types'
 
 export const noDefaultAndPropagation = (e: Event) => {
   e.preventDefault()
@@ -55,3 +46,104 @@ export const constrain = (transform: Transform, extent: Bounding, limit: Transfo
     dy1 > dy0 ? (dy0 + dy1) / 2 : Math.min(0, dy0) || Math.max(0, dy1),
   )
 }
+
+function isPC () {
+  const userAgentInfo = navigator.userAgent
+  const Agents = [
+    'Android', 'iPhone',
+    'SymbianOS', 'Windows Phone',
+    'iPad', 'iPod',
+  ]
+
+  let flag = true
+
+  for (let v = 0; v < Agents.length; v++) {
+    if (userAgentInfo.indexOf(Agents[v]) > 0) {
+      flag = false
+      break
+    }
+  }
+
+  return flag
+}
+
+function isTouchable () {
+  return navigator.maxTouchPoints || ('ontouchstart' in window)
+}
+
+export const zoom = (target: HTMLElement, callback: ZoomCallback, limit: TransformExtent) => {
+  let __transform = new Transform()
+  let __limit = limit
+  let __receiver: TransformReceiver | null = null
+
+  let backup: Transform | null = null
+  let paused = false
+
+  const data: ZoomData = {
+    get limit () {
+      return __limit
+    },
+    set limit (v) {
+      __limit = v
+    },
+    get transform () {
+      return __transform
+    },
+    set transform (v) {
+      __transform = v
+    },
+    get receiver () {
+      return __receiver
+    },
+    set receiver (v) {
+      __receiver = v
+    },
+  }
+
+  function emit (type: ZoomType, e: Event, dirty = false) {
+    const event = {
+      sourceEvent: e,
+      type,
+      transform: __transform,
+      dirty,
+    }
+
+    if (paused) {
+      __receiver?.(event)
+
+      return
+    }
+    callback(event, t => __transform = t)
+  }
+
+  const creator = !isPC() && isTouchable() ? touchZoom : mouseZoom
+
+  const destroy = creator(target, data, emit)
+
+  return {
+    constrain (limit: TransformExtent) {
+      __limit = limit
+    },
+    apply (nextTransform: Transform) {
+      __transform = nextTransform
+    },
+    interrupt (receiver?: TransformReceiver) {
+      backup = __transform
+      paused = true
+
+      if (receiver) {
+        __receiver = receiver
+      }
+    },
+    continue () {
+      if (backup) __transform = backup
+
+      __receiver = null
+      backup = null
+      paused = false
+    },
+    destroy,
+  }
+}
+
+export default zoom

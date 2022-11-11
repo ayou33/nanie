@@ -11,9 +11,9 @@ const zoom = nanie(document.querySelector('#app')!, {
   this.style.transform = `translate(${transform.x}px, ${transform.y}px) scale(${transform.k})`
 })
 
-zoom.interrupt((type, t) => {
-  console.log('jojo', type, t)
-  if (t.k >= 2) {
+zoom.interrupt(e => {
+  console.log('receiver', e.type, e.transform)
+  if (e.transform.k >= 2) {
     zoom.continue()
   }
 })

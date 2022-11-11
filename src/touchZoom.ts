@@ -6,37 +6,23 @@
  */
 import Fingers from './Fingers'
 import { Bounding } from './Point'
-import Transform, { TransformExtent } from './Transform'
-import { noDefaultAndPropagation, TransformReceiver, ZoomCallback, ZoomType } from './zoom'
+import { ZoomData, ZoomEmit } from './types'
+import { noDefaultAndPropagation } from './zoom'
 
-export function touchZoom (target: HTMLElement, callback: ZoomCallback, limit: TransformExtent) {
-  let transform = new Transform()
-  let backup = transform
-  let transformReceiver: TransformReceiver | null = null
-  let transformLimit = limit
-  const fingers = new Fingers(transform)
+export function touchZoom (target: HTMLElement, data: ZoomData, emit: ZoomEmit) {
+  const fingers = new Fingers(data.transform)
   const rect = target.getBoundingClientRect()
   let bounding: Bounding = [[rect.x, rect.y], [rect.x + rect.width, rect.y + rect.height]]
-  let paused = false
-
-  function emit (type: ZoomType, e: TouchEvent) {
-    if (paused) {
-      transformReceiver?.(type, transform)
-
-      return
-    }
-    callback({
-      sourceEvent: e,
-      type,
-      transform,
-    }, t => transform = t)
-  }
 
   function onTouchStart (e: TouchEvent) {
+    let dirty = false
+
     fingers.use(e)
 
     function onTouchMove (e: TouchEvent) {
-      transform = fingers.translate(e, bounding, transformLimit)
+      dirty = true
+
+      data.transform = fingers.translate(e, bounding, data.limit)
 
       emit('zoom', e)
 
@@ -46,7 +32,9 @@ export function touchZoom (target: HTMLElement, callback: ZoomCallback, limit: T
     function onTouchEnd (e: TouchEvent) {
       fingers.release(e)
 
-      emit('end', e)
+      emit('end', e, dirty)
+
+      if (!dirty) emit('click', e)
 
       if (fingers.count() === 0) {
         target.removeEventListener('touchmove', onTouchMove)
@@ -66,25 +54,8 @@ export function touchZoom (target: HTMLElement, callback: ZoomCallback, limit: T
 
   target.addEventListener('touchstart', onTouchStart)
 
-  return {
-    constrain (limit: TransformExtent) {
-      transformLimit = limit
-    },
-    apply (nextTransform: Transform) {
-      transform = nextTransform
-    },
-    interrupt (receiver?: TransformReceiver) {
-      backup = transform
-      paused = true
-      if (receiver) transformReceiver = receiver
-    },
-    continue () {
-      transform = backup
-      paused = false
-    },
-    destroy () {
-      target.removeEventListener('touchstart', onTouchStart)
-    },
+  return () => {
+    target.removeEventListener('touchstart', onTouchStart)
   }
 }
 

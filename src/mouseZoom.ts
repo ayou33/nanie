@@ -4,50 +4,27 @@
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-08 18:58:05
  */
+import { ZoomData, ZoomEmit } from './types'
 import {
-  ZoomCallback,
-  noDefaultAndPropagation,
-  ZoomType,
-  translate,
-  scaleViaWheel,
-  centerOf,
-  scale,
-  constrain, TransformReceiver,
+  noDefaultAndPropagation, translate, scaleViaWheel,
+  centerOf, scale, constrain,
 } from './zoom'
-import Transform, { TransformExtent } from './Transform'
 import Point, { Bounding, Vector } from './Point'
 
-export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: TransformExtent) {
+export function mouseZoom (target: HTMLElement, data: ZoomData, emit: ZoomEmit) {
   const rect = target.getBoundingClientRect()
   let bounding: Bounding = [[rect.x, rect.y], [rect.x + rect.width, rect.y + rect.height]]
-  let transform = new Transform()
-  let backup = transform
-  let transformReceiver: TransformReceiver | null = null
-  let transformLimit = limit
-  let paused = false
-
-  function emit (type: ZoomType, e: MouseEvent) {
-    if (paused) {
-      transformReceiver?.(type, transform)
-      return
-    }
-
-    callback({
-      sourceEvent: e,
-      type,
-      transform,
-    }, t => transform = t)
-  }
 
   function onMouseDown (e: MouseEvent) {
-    let zoomed = false
+    let dirty = false
 
-    const start = Point.from(transform.invert([e.clientX, e.clientY]))
+    const start = Point.from(data.transform.invert([e.clientX, e.clientY]))
 
     function onMouseMove (e: MouseEvent) {
-      transform = constrain(translate(transform, new Point(e.clientX, e.clientY), start), bounding, transformLimit)
+      data.transform = constrain(
+        translate(data.transform, new Point(e.clientX, e.clientY), start), bounding, data.limit)
 
-      zoomed = true
+      dirty = true
 
       emit('zoom', e)
 
@@ -59,9 +36,9 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
       window.removeEventListener('mouseup', onMouseUp)
       window.removeEventListener('mouseleave', onMouseUp)
 
-      emit('end', e)
+      emit('end', e, dirty)
 
-      if (!zoomed) emit('click', e)
+      if (!dirty) emit('click', e)
     }
 
     window.addEventListener('mousemove', onMouseMove)
@@ -74,18 +51,19 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
   }
 
   function onWheel (e: WheelEvent) {
-    const k = scaleViaWheel(e, transform.k)
+    const k = scaleViaWheel(e, data.transform.k)
 
     const center = Point.from(centerOf(e.currentTarget as HTMLElement))
 
     const offset = new Point(e.clientX, e.clientY).offsetFrom(center)
 
-    const p: Vector = [transform.x - offset[0], transform.y - offset[1]]
+    const p: Vector = [data.transform.x - offset[0], data.transform.y - offset[1]]
 
     // 奇点
-    const singularity = Point.from(transform.invert(p))
+    const singularity = Point.from(data.transform.invert(p))
 
-    transform = constrain(translate(scale(transform, k, limit), Point.from(p), singularity), bounding, transformLimit)
+    data.transform = constrain(
+      translate(scale(data.transform, k, data.limit), Point.from(p), singularity), bounding, data.limit)
 
     emit('zoom', e)
 
@@ -95,26 +73,9 @@ export function mouseZoom (target: HTMLElement, callback: ZoomCallback, limit: T
   target.addEventListener('mousedown', onMouseDown)
   target.addEventListener('wheel', onWheel)
 
-  return {
-    constrain (limit: TransformExtent) {
-      transformLimit = limit
-    },
-    apply (nextTransform: Transform) {
-      transform = nextTransform
-    },
-    interrupt (receiver?: TransformReceiver) {
-      backup = transform
-      paused = true
-      if (receiver) transformReceiver = receiver
-    },
-    continue () {
-      transform = backup
-      paused = false
-    },
-    destroy () {
-      target.removeEventListener('mousedown', onMouseDown)
-      target.removeEventListener('wheel', onWheel)
-    },
+  return () => {
+    target.removeEventListener('mousedown', onMouseDown)
+    target.removeEventListener('wheel', onWheel)
   }
 }
 

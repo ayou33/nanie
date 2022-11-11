@@ -4,36 +4,11 @@
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-08 18:56:12
  */
-import touchZoom from './touchZoom'
 import { Transform as T, TransformExtent } from './Transform'
-import { TransformReceiver as _TransformReceiver, ZoomCallback, ZoomEvent as _ZoomEvent } from './zoom'
-import mouseZoom from './mouseZoom'
+import { TransformReceiver as _TransformReceiver, ZoomCallback, ZoomEvent as _ZoomEvent } from './types'
+import zoom from './zoom'
 
 export type Transform = T
-
-function isPC () {
-  const userAgentInfo = navigator.userAgent
-  const Agents = [
-    'Android', 'iPhone',
-    'SymbianOS', 'Windows Phone',
-    'iPad', 'iPod',
-  ]
-
-  let flag = true
-
-  for (let v = 0; v < Agents.length; v++) {
-    if (userAgentInfo.indexOf(Agents[v]) > 0) {
-      flag = false
-      break
-    }
-  }
-
-  return flag
-}
-
-function isTouchable () {
-  return navigator.maxTouchPoints || ('ontouchstart' in window)
-}
 
 export type NaNieOptions = {
   limit: TransformExtent,
@@ -81,16 +56,12 @@ export function nanie (
     zoomHandler = onZoom ?? zoomHandler
   }
 
-  const zoom: ZoomCallback = (e: ZoomEvent, c) => {
+  const callback: ZoomCallback = (e: ZoomEvent, c) => {
     zoomHandler?.call(target, e, c)
   }
 
   if (target instanceof Element) {
-    if (!isPC() && isTouchable()) {
-      return touchZoom(target, zoom, options.limit)
-    } else {
-      return mouseZoom(target, zoom, options.limit)
-    }
+    return zoom(target, callback, options.limit)
   } else {
     throw new Error('Invalid zoom target')
   }
