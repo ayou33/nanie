@@ -6,11 +6,11 @@
  */
 import Fingers from './Fingers'
 import { Bounding } from './Point'
-import { ZoomData, ZoomEmit } from './types'
+import { ZoomModel, ZoomEmit } from './types'
 import { noDefaultAndPropagation } from './zoom'
 
-export function touchZoom (target: HTMLElement, data: ZoomData, emit: ZoomEmit) {
-  const fingers = new Fingers(data.transform)
+export function touchZoom (target: HTMLElement, model: ZoomModel, emit: ZoomEmit) {
+  const fingers = new Fingers(model.transform)
   const rect = target.getBoundingClientRect()
   let bounding: Bounding = [[rect.x, rect.y], [rect.x + rect.width, rect.y + rect.height]]
 
@@ -22,7 +22,7 @@ export function touchZoom (target: HTMLElement, data: ZoomData, emit: ZoomEmit) 
     function onTouchMove (e: TouchEvent) {
       dirty = true
 
-      data.transform = fingers.translate(e, bounding, data.limit)
+      model.transform = fingers.translate(e, bounding, model.limit)
 
       emit('zoom', e)
 

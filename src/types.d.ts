@@ -18,7 +18,7 @@ export type ZoomCallback = (e: ZoomEvent, correct: (t: Transform) => void) => vo
 
 export type TransformReceiver = (e: ZoomEvent) => void
 
-export type ZoomData = {
+export type ZoomModel = {
   limit: TransformExtent;
   transform: Transform;
   receiver: TransformReceiver | null;

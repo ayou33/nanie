@@ -4,25 +4,25 @@
  * @Last Modified by: 阿佑
  * @Last Modified time: 2022-07-08 18:58:05
  */
-import { ZoomData, ZoomEmit } from './types'
+import { ZoomModel, ZoomEmit } from './types'
 import {
   noDefaultAndPropagation, translate, scaleViaWheel,
   centerOf, scale, constrain,
 } from './zoom'
 import Point, { Bounding, Vector } from './Point'
 
-export function mouseZoom (target: HTMLElement, data: ZoomData, emit: ZoomEmit) {
+export function mouseZoom (target: HTMLElement, model: ZoomModel, emit: ZoomEmit) {
   const rect = target.getBoundingClientRect()
   let bounding: Bounding = [[rect.x, rect.y], [rect.x + rect.width, rect.y + rect.height]]
 
   function onMouseDown (e: MouseEvent) {
     let dirty = false
 
-    const start = Point.from(data.transform.invert([e.clientX, e.clientY]))
+    const start = Point.from(model.transform.invert([e.clientX, e.clientY]))
 
     function onMouseMove (e: MouseEvent) {
-      data.transform = constrain(
-        translate(data.transform, new Point(e.clientX, e.clientY), start), bounding, data.limit)
+      model.transform = constrain(
+        translate(model.transform, new Point(e.clientX, e.clientY), start), bounding, model.limit)
 
       dirty = true
 
@@ -51,19 +51,19 @@ export function mouseZoom (target: HTMLElement, data: ZoomData, emit: ZoomEmit) 
   }
 
   function onWheel (e: WheelEvent) {
-    const k = scaleViaWheel(e, data.transform.k)
+    const k = scaleViaWheel(e, model.transform.k)
 
     const center = Point.from(centerOf(e.currentTarget as HTMLElement))
 
     const offset = new Point(e.clientX, e.clientY).offsetFrom(center)
 
-    const p: Vector = [data.transform.x - offset[0], data.transform.y - offset[1]]
+    const p: Vector = [model.transform.x - offset[0], model.transform.y - offset[1]]
 
     // 奇点
-    const singularity = Point.from(data.transform.invert(p))
+    const singularity = Point.from(model.transform.invert(p))
 
-    data.transform = constrain(
-      translate(scale(data.transform, k, data.limit), Point.from(p), singularity), bounding, data.limit)
+    model.transform = constrain(
+      translate(scale(model.transform, k, model.limit), Point.from(p), singularity), bounding, model.limit)
 
     emit('zoom', e)
 

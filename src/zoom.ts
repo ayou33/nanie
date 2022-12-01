@@ -2,7 +2,7 @@ import mouseZoom from './mouseZoom'
 import Point, { Bounding, Vector } from './Point'
 import touchZoom from './touchZoom'
 import Transform, { TransformExtent } from './Transform'
-import { TransformReceiver, ZoomCallback, ZoomData, ZoomType } from './types'
+import { TransformReceiver, ZoomCallback, ZoomModel, ZoomType } from './types'
 
 export const noDefaultAndPropagation = (e: Event) => {
   e.preventDefault()
@@ -72,31 +72,32 @@ function isTouchable () {
 }
 
 export const zoom = (target: HTMLElement, callback: ZoomCallback, limit: TransformExtent) => {
-  let __transform = new Transform()
-  let __limit = limit
-  let __receiver: TransformReceiver | null = null
+  let _transform = new Transform()
+  let _limit = limit
+  let _receiver: TransformReceiver | null = null
+  let _backup: Transform | null = null
+  let _hijack = false
+  let _interrupt = false
 
-  let backup: Transform | null = null
-  let paused = false
-
-  const data: ZoomData = {
+  const model: ZoomModel = {
     get limit () {
-      return __limit
+      return _limit
     },
     set limit (v) {
-      __limit = v
+      _limit = v
     },
     get transform () {
-      return __transform
+      return _transform
     },
     set transform (v) {
-      __transform = v
+      _interrupt = true
+      _transform = v
     },
     get receiver () {
-      return __receiver
+      return _receiver
     },
     set receiver (v) {
-      __receiver = v
+      _receiver = v
     },
   }
 
@@ -104,45 +105,74 @@ export const zoom = (target: HTMLElement, callback: ZoomCallback, limit: Transfo
     const event = {
       sourceEvent: e,
       type,
-      transform: __transform,
+      transform: _transform,
       dirty,
     }
 
-    if (paused) {
-      __receiver?.(event)
+    if (_hijack) {
+      _receiver?.(event)
 
       return
     }
-    callback(event, t => __transform = t)
+
+    callback(event, t => _transform = t)
   }
 
-  const creator = !isPC() && isTouchable() ? touchZoom : mouseZoom
+  function translateTo (to: Transform) {
+    _transform = to
+    emit('zoom', new CustomEvent('zoom'))
+  }
 
-  const destroy = creator(target, data, emit)
+  function animateTo (to: Transform, deadline: number) {
+    if (!_interrupt) {
+      requestAnimationFrame(time => {
+        const diff = to.diff(_transform)
+        const next = new Transform(Math.sqrt(diff.k), diff.x / 2, diff.y / 2)
+        if (time < deadline) {
+          translateTo(next)
+          animateTo(to, deadline)
+        } else {
+          translateTo(to)
+        }
+      })
+    }
+  }
+
+  function apply (transform: Transform, duration = 0) {
+    if (duration === 0) {
+      translateTo(transform)
+    } else {
+      _interrupt = false
+      animateTo(transform, performance.now() + duration)
+    }
+  }
+
+  const create = !isPC() && isTouchable() ? touchZoom : mouseZoom
 
   return {
     constrain (limit: TransformExtent) {
-      __limit = limit
+      _limit = limit
     },
-    apply (nextTransform: Transform) {
-      __transform = nextTransform
+    apply,
+    reset (duration = 0) {
+      apply(new Transform(), duration)
     },
     interrupt (receiver?: TransformReceiver) {
-      backup = __transform
-      paused = true
+      _backup = _transform
+      _hijack = true
 
       if (receiver) {
-        __receiver = receiver
+        _receiver = receiver
       }
     },
     continue () {
-      if (backup) __transform = backup
+      if (_backup) _transform = _backup
 
-      __receiver = null
-      backup = null
-      paused = false
+      _receiver = null
+      _backup = null
+      _hijack = false
     },
-    destroy,
+    destroy: create(target, model, emit),
   }
 }
 

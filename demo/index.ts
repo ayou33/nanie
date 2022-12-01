@@ -11,9 +11,13 @@ const zoom = nanie(document.querySelector('#app')!, {
   this.style.transform = `translate(${transform.x}px, ${transform.y}px) scale(${transform.k})`
 })
 
-zoom.interrupt(e => {
-  console.log('receiver', e.type, e.transform)
-  if (e.transform.k >= 2) {
-    zoom.continue()
-  }
+// zoom.interrupt(e => {
+//   console.log('receiver', e.type, e.transform)
+//   if (e.transform.k >= 2) {
+//     zoom.continue()
+//   }
+// })
+
+document.querySelector('#reset')?.addEventListener('click', function () {
+  zoom.reset(300)
 })

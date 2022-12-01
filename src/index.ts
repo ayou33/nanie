@@ -27,23 +27,13 @@ export type TransformReceiver = _TransformReceiver
 
 export type ZoomHandler = (this: HTMLElement, e: ZoomEvent, correct: (t: Transform) => void) => void
 
-export interface API {
-  constrain (limit: TransformExtent): void;
-
-  apply (nextTransform: Transform): void;
-
-  interrupt (receiver?: TransformReceiver): void;
-
-  continue (): void;
-
-  destroy (): void;
-}
+export type API = ReturnType<typeof zoom>
 
 export function nanie (
   target: HTMLElement,
   mixed?: Partial<NaNieOptions> | ZoomHandler,
   onZoom?: ZoomHandler,
-): API {
+) {
   let options = defaultNaNieOptions
   let zoomHandler: ZoomHandler = e => e
 
