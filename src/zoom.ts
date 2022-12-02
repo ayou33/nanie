@@ -77,7 +77,7 @@ export const zoom = (target: HTMLElement, callback: ZoomCallback, limit: Transfo
   let _receiver: TransformReceiver | null = null
   let _backup: Transform | null = null
   let _hijack = false
-  let _interrupt = false
+  let _animating = false
 
   const model: ZoomModel = {
     get limit () {
@@ -90,7 +90,6 @@ export const zoom = (target: HTMLElement, callback: ZoomCallback, limit: Transfo
       return _transform
     },
     set transform (v) {
-      _interrupt = true
       _transform = v
     },
     get receiver () {
@@ -102,6 +101,9 @@ export const zoom = (target: HTMLElement, callback: ZoomCallback, limit: Transfo
   }
 
   function emit (type: ZoomType, e: Event, dirty = false) {
+    // 用户的mouse或者touch事件中断现有的动画队列
+    if (type === 'start' && e.isTrusted) _animating = false
+
     const event = {
       sourceEvent: e,
       type,
@@ -124,7 +126,7 @@ export const zoom = (target: HTMLElement, callback: ZoomCallback, limit: Transfo
   }
 
   function animateTo (to: Transform, deadline: number) {
-    if (!_interrupt) {
+    if (_animating) {
       requestAnimationFrame(time => {
         const diff = to.diff(_transform)
         const next = new Transform(Math.sqrt(diff.k), diff.x / 2, diff.y / 2)
@@ -133,16 +135,17 @@ export const zoom = (target: HTMLElement, callback: ZoomCallback, limit: Transfo
           animateTo(to, deadline)
         } else {
           translateTo(to)
+          _animating = false
         }
       })
     }
   }
 
   function apply (transform: Transform, duration = 0) {
-    if (duration === 0) {
+    if (duration === 0 || _transform.equal(transform)) {
       translateTo(transform)
     } else {
-      _interrupt = false
+      _animating = true
       animateTo(transform, performance.now() + duration)
     }
   }
@@ -150,12 +153,13 @@ export const zoom = (target: HTMLElement, callback: ZoomCallback, limit: Transfo
   const create = !isPC() && isTouchable() ? touchZoom : mouseZoom
 
   return {
-    constrain (limit: TransformExtent) {
-      _limit = limit
-    },
     apply,
     reset (duration = 0) {
       apply(new Transform(), duration)
+    },
+    constrain (limit: TransformExtent) {
+      _limit = limit
+      apply(_transform)
     },
     interrupt (receiver?: TransformReceiver) {
       _backup = _transform
