@@ -35,6 +35,10 @@ export class Fingers {
     }
   }
 
+  apply (transform: Transform) {
+    this.transform = transform
+  }
+
   use (e: TouchEvent) {
     toList(e.changedTouches).map(touch => {
       this.fingers.push({

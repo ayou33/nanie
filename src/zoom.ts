@@ -1,8 +1,8 @@
 import mouseZoom from './mouseZoom'
-import Point, { Bounding, Vector } from './Point'
+import Point, {Bounding, Vector} from './Point'
 import touchZoom from './touchZoom'
-import Transform, { TransformExtent } from './Transform'
-import { TransformReceiver, ZoomCallback, ZoomModel, ZoomType } from './types'
+import Transform, {TransformExtent} from './Transform'
+import {ModelKeys, ModelValues, TransformReceiver, ZoomCallback, ZoomModel, ZoomType} from './types'
 
 export const noDefaultAndPropagation = (e: Event) => {
   e.preventDefault()
@@ -72,32 +72,38 @@ function isTouchable () {
 }
 
 export const zoom = (target: HTMLElement, callback: ZoomCallback, limit: TransformExtent) => {
-  let _transform = new Transform()
-  let _limit = limit
-  let _receiver: TransformReceiver | null = null
+  let __transform = new Transform()
+  let __limit = limit
+  let __receiver: TransformReceiver | null = null
   let _backup: Transform | null = null
   let _hijack = false
   let _animating = false
+  let receiver: {
+    [K in ModelKeys]?: Array<(v: ModelValues[K]) => void>;
+  } = {}
 
   const model: ZoomModel = {
     get limit () {
-      return _limit
+      return __limit
     },
     set limit (v) {
-      _limit = v
+      __limit = v
     },
     get transform () {
-      return _transform
+      return __transform
     },
     set transform (v) {
-      _transform = v
+      __transform = v
     },
     get receiver () {
-      return _receiver
+      return __receiver
     },
     set receiver (v) {
-      _receiver = v
+      __receiver = v
     },
+    sync: (name: ModelKeys, cb) => {
+      (receiver[name] ??= []).push(cb)
+    }
   }
 
   function emit (type: ZoomType, e: Event, dirty = false) {
@@ -107,28 +113,29 @@ export const zoom = (target: HTMLElement, callback: ZoomCallback, limit: Transfo
     const event = {
       sourceEvent: e,
       type,
-      transform: _transform,
+      transform: __transform,
       dirty,
     }
 
     if (_hijack) {
-      _receiver?.(event)
+      __receiver?.(event)
 
       return
     }
 
-    callback(event, t => _transform = t)
+    callback(event, t => __transform = t)
   }
 
   function translateTo (to: Transform) {
-    _transform = to
+    __transform = to
+    receiver['transform']?.map(f => f(to))
     emit('zoom', new CustomEvent('zoom'))
   }
 
   function animateTo (to: Transform, deadline: number) {
     if (_animating) {
       requestAnimationFrame(time => {
-        const diff = to.diff(_transform)
+        const diff = to.diff(__transform)
         const next = new Transform(Math.sqrt(diff.k), diff.x / 2, diff.y / 2)
         if (time < deadline) {
           translateTo(next)
@@ -142,7 +149,7 @@ export const zoom = (target: HTMLElement, callback: ZoomCallback, limit: Transfo
   }
 
   function apply (transform: Transform, duration = 0) {
-    if (duration === 0 || _transform.equal(transform)) {
+    if (duration === 0 || __transform.equal(transform)) {
       translateTo(transform)
     } else {
       _animating = true
@@ -150,7 +157,7 @@ export const zoom = (target: HTMLElement, callback: ZoomCallback, limit: Transfo
     }
   }
 
-  const create = !isPC() && isTouchable() ? touchZoom : mouseZoom
+  const destroy = (!isPC() && isTouchable() ? touchZoom : mouseZoom)(target, model, emit)
 
   return {
     apply,
@@ -158,25 +165,28 @@ export const zoom = (target: HTMLElement, callback: ZoomCallback, limit: Transfo
       apply(new Transform(), duration)
     },
     constrain (limit: TransformExtent) {
-      _limit = limit
-      apply(_transform)
+      __limit = limit
+      apply(__transform)
     },
     interrupt (receiver?: TransformReceiver) {
-      _backup = _transform
+      _backup = __transform
       _hijack = true
 
       if (receiver) {
-        _receiver = receiver
+        __receiver = receiver
       }
     },
     continue () {
-      if (_backup) _transform = _backup
+      if (_backup) __transform = _backup
 
-      _receiver = null
+      __receiver = null
       _backup = null
       _hijack = false
     },
-    destroy: create(target, model, emit),
+    destroy () {
+      destroy()
+      receiver = {}
+    }
   }
 }
 

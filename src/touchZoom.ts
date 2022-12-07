@@ -14,6 +14,10 @@ export function touchZoom (target: HTMLElement, model: ZoomModel, emit: ZoomEmit
   const rect = target.getBoundingClientRect()
   let bounding: Bounding = [[rect.x, rect.y], [rect.x + rect.width, rect.y + rect.height]]
 
+  model.sync('transform', v => {
+    fingers.apply(v)
+  })
+
   function onTouchStart (e: TouchEvent) {
     let dirty = false
 
